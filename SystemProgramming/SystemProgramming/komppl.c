@@ -1447,12 +1447,12 @@ int AVI2 ()
                             ZKARD ();
                             memcpy ( ASS_CARD._BUFCARD.METKA, "L4", 2);
                             memcpy ( ASS_CARD._BUFCARD.OPERAC, "L", 1);
-                            strcpy ( ASS_CARD._BUFCARD.OPERAND, " @RABP4,@ZERO");
+                            strcpy ( ASS_CARD._BUFCARD.OPERAND, "@RABP4,@ZERO");
                             ASS_CARD._BUFCARD.OPERAND [ strlen ( ASS_CARD._BUFCARD.OPERAND ) ] = ' ';
                             ZKARD ();
                             
                             memcpy ( ASS_CARD._BUFCARD.OPERAC, "IC ", 3);
-                            strcpy ( ASS_CARD._BUFCARD.OPERAND, " @RABP4,0(@RABP5,@RABP6)");
+                            strcpy ( ASS_CARD._BUFCARD.OPERAND, "@RABP4,0(@RABP5,@RABP6)");
                             ASS_CARD._BUFCARD.OPERAND [ strlen ( ASS_CARD._BUFCARD.OPERAND ) ] = ' ';
                             ZKARD ();
                             
@@ -1481,9 +1481,9 @@ int AVI2 ()
                             ASS_CARD._BUFCARD.OPERAND [ strlen ( ASS_CARD._BUFCARD.OPERAND ) ] = ' ';
                             ZKARD ();
                             
-                	    memcpy ( ASS_CARD._BUFCARD.METKA, "L1",2 );                        
-			    memcpy ( ASS_CARD._BUFCARD.OPERAC, "OR", 2 );
-                            strcpy ( ASS_CARD._BUFCARD.OPERAND, " @RABP2,@RABP3");
+                	        memcpy ( ASS_CARD._BUFCARD.METKA, "L1",2 );
+                            memcpy ( ASS_CARD._BUFCARD.OPERAC, "OR", 2 );
+                            strcpy ( ASS_CARD._BUFCARD.OPERAND, "@RABP2,@RABP3");
                             ASS_CARD._BUFCARD.OPERAND [ strlen ( ASS_CARD._BUFCARD.OPERAND ) ] = ' ';
                             ZKARD ();
                             
@@ -1954,10 +1954,10 @@ int OPA2 ()
             } else if (SYM [i].TYPE == 'C' || SYM [i].TYPE == 'I') {
                 memcpy ( ASS_CARD._BUFCARD.METKA, "L3", 2 );                
 		memcpy ( ASS_CARD._BUFCARD.OPERAC, "SRL ", 4 );
-                memcpy ( ASS_CARD._BUFCARD.OPERAND, " @RABP2,24", 10);
+                memcpy ( ASS_CARD._BUFCARD.OPERAND, "@RABP2,24", 10);
                 ZKARD ();
                 memcpy ( ASS_CARD._BUFCARD.OPERAC, "STC  ", 4 );
-                strcpy ( ASS_CARD._BUFCARD.OPERAND, " @RABP2," );
+                strcpy ( ASS_CARD._BUFCARD.OPERAND, "@RABP2," );
                 strcat ( ASS_CARD._BUFCARD.OPERAND, FORMT [0]);
 		ASS_CARD._BUFCARD.OPERAND [ strlen    /*              и         */
                                            ( ASS_CARD._BUFCARD.OPERAND ) ] = ' ';

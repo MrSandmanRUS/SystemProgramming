@@ -1,4 +1,4 @@
-#define DL_ASSTEXT 16
+#define DL_ASSTEXT 42
 #define DL_OBJTEXT 50                             /*длина об'ектн. текста   */
 #define NSYM 10                                   /*размер табл.символов    */
 #define NPOP 6                                    /*размер табл.псевдоопер. */
@@ -84,16 +84,15 @@ int SRX();                                        /*подпр.обр.опер.R
 */
 
 //TODO PROBEL SHIET
-//HATE RASTORGUEV GO TO DOPSA
  struct ASSKARTA                                  /*структ.карты ј——≈ћЅЋ≈–ј */
   {
    unsigned  char METKA    [ 8];                  /*поле метки              */
    unsigned  char PROBEL1  [ 1];                  /*пробел-разделитель      */
    unsigned  char OPERAC   [ 5];                  /*поле операции           */
    unsigned  char PROBEL2  [ 1];                  /*пробел-разделитель      */
-   unsigned  char OPERAND  [12];                  /*поле операнда           */
+   unsigned  char OPERAND  [24];                  /*поле операнда           */
    unsigned  char PROBEL3  [ 1];                  /*пробел разделитель      */
-   unsigned  char COMM     [52];                  /*поле комментари€        */
+   unsigned  char COMM     [40];                  /*поле комментари€        */
   };
 
 /*
