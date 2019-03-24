@@ -13,6 +13,7 @@
 */
 
 char NFIL [30] = "\x0";
+unsigned char ASSTEXT [DL_ASSTEXT][80];
 
 unsigned char PRNMET = 'N';                       /*индикатор обнаруж.метки */
 int I3;                                           /*счетчик цикла           */
@@ -510,23 +511,35 @@ void STXT( int ARG )                              /*подпр.формир.TXT-
   TXT.STR_TXT.ADOP[1]  = *(PTR+1);                /*двоичного целого        */
   TXT.STR_TXT.ADOP[0]  = '\x00';                  /*в соглашени€х ≈— Ё¬ћ    */
 
-  if ( ARG == 2 )                                 /*формирование пол€ OPER  */
-   {
-    memset ( TXT.STR_TXT.OPER , 64 , 4 );
-    memcpy ( TXT.STR_TXT.OPER,RR.BUF_OP_RR , 2 ); /* дл€ RR-формата         */
+  memset ( TXT.STR_TXT.OPER, 0x40, 56 );
+
+  if ( ARG == 2 )                                 /*формирование поля OPER  */
+  {
+    memcpy ( TXT.STR_TXT.OPER,RR.BUF_OP_RR , 2 ); /* для RR-формата         */
     TXT.STR_TXT.DLNOP [1] = 2;
-   }
+  }
+  else if ( ARG == 4 )
+  {
+    memcpy ( TXT.STR_TXT.OPER , RX.BUF_OP_RX , 4);/* для RX-формата         */
+    TXT.STR_TXT.DLNOP [1] = 4;
+  }
+  else if ( ARG == 6 )
+  {
+    memcpy ( TXT.STR_TXT.OPER , SS.BUF_OP_SS , 6);/* для SS-формата         */
+    TXT.STR_TXT.DLNOP [1] = 6;
+  }
   else
-   {
+  {
     memcpy ( TXT.STR_TXT.OPER , RX.BUF_OP_RX , 4);/* дл€ RX-формата         */
     TXT.STR_TXT.DLNOP [1] = 4;
-   }
-  memcpy (TXT.STR_TXT.POLE9,ESD.STR_ESD.POLE11,8);/*формиров.идентифик.пол€ */
-
+  }
+     
+  memcpy (TXT.STR_TXT.POLE9,ESD.STR_ESD.POLE11,8);/*формиров.идентифик.поля */
   memcpy ( OBJTEXT[ITCARD] , TXT.BUF_TXT , 80 );  /*запись об'ектной карты  */
   ITCARD += 1;                                    /*коррекц.инд-са своб.к-ты*/
   CHADR = CHADR + ARG;                            /*коррекц.счетчика адреса */
   return;
+
  }
 
 int SDC()                                         /*подпр.обр.пс.опер.DC    */
@@ -760,6 +773,7 @@ int SRR()                                         /*подпр.обр.опер.R
 		      (char*) T_SYM[J].IMSYM , " "
 		     );
       if( !strcmp ( METKA , METKA1 ) )            /* и при совпадении:      */
+      //if( strstr ( METKA , METKA2 ) != NULL )
        {                                          /*  берем значение этой   */
 	 R1R2 = T_SYM[J].ZNSYM << 4;              /*  метки в качестве перв.*/
 	 goto SRR1;
@@ -784,7 +798,8 @@ int SRR()                                         /*подпр.обр.опер.R
       METKA = strtok (
 		      (char*) T_SYM[J].IMSYM , " "
 		     );
-      if( !strcmp ( METKA , METKA2 ) )            /* и при совпадении:      */
+      //if( !strcmp ( METKA , METKA2 ) )            /* и при совпадении:      */
+      if( strstr ( METKA , METKA2 ) != NULL )
        {                                          /*  берем значение этой   */
 	 R1R2 = R1R2 + T_SYM[J].ZNSYM;            /*  метки в качестве втор.*/
 	 goto SRR2;                               /*                        */
@@ -867,44 +882,111 @@ int SRX()                                         /*подпр.обр.опер.R
       METKA = strtok (
 		      (char*) T_SYM[J].IMSYM , " "
 		     );
-      if( !strcmp ( METKA , METKA2 ) )            /* и при совпадении:      */
+      //if( !strcmp ( METKA , METKA2 ) )            /* и при совпадении:      */
+      if( strstr ( METKA , METKA2 ) != NULL )
        {                                          /*  установить нач.знач.: */
-	NBASRG = 0;                               /*   номера базов.регистра*/
-	DELTA  = 0xfff - 1;                       /*   и его значен.,а также*/
-	ZNSYM  = T_SYM[J].ZNSYM;                  /*   смещен.втор.операнда */
-	for ( I=0; I<15; I++ )                    /*далее в цикле из всех   */
-	 {                                        /*рег-ров выберем базовым */
-	  if (                                    /*тот, который имеет:     */
-	       T_BASR[I].PRDOST == 'Y'            /* призн.активности,      */
-	      &&                                  /*  и                     */
-	       ZNSYM - T_BASR[I].SMESH >= 0       /* значенение, меньшее по */
-	      &&                                  /* величине,но наиболее   */
-	       ZNSYM - T_BASR[I].SMESH < DELTA    /* близкое к смещению вто-*/
-	     )                                    /* рого операнда          */
-	   {
-	    NBASRG = I + 1;
-	    DELTA  = ZNSYM - T_BASR[I].SMESH;
-	   }
-	 }
-	if ( NBASRG == 0 || DELTA > 0xfff )       /*если баз.рег.не выбр.,то*/
-	 return(5);                               /* заверш.подпр.по ошибке */
-	else                                      /*иначе                   */
-	 {                                        /* сформировыать машинное */
-	  B2D2 = NBASRG << 12;                    /* представление второго  */
-	  B2D2 = B2D2 + DELTA;                    /* операнда в виде B2D2   */
-	  PTR = (char *)&B2D2;                    /* и в соглашени€х ≈— Ё¬ћ */
-	  swab ( PTR , PTR , 2 );                 /* с записью в тело ком-ды*/
-	  RX.OP_RX.B2D2 = B2D2;
-	 }
-	goto SRX2;                                /*перех.на форм.первого   */
+        NBASRG = 0;                               /*   номера базов.регистра*/
+        DELTA  = 0xfff - 1;                       /*   и его значен.,а также*/
+        ZNSYM  = T_SYM[J].ZNSYM;                  /*   смещен.втор.операнда */
+        for ( I=0; I<15; I++ )                    /*далее в цикле из всех   */
+         {                                        /*рег-ров выберем базовым */
+          if (                                    /*тот, который имеет:     */
+               T_BASR[I].PRDOST == 'Y'            /* призн.активности,      */
+              &&                                  /*  и                     */
+               ZNSYM - T_BASR[I].SMESH >= 0       /* значенение, меньшее по */
+              &&                                  /* величине,но наиболее   */
+               ZNSYM - T_BASR[I].SMESH < DELTA    /* близкое к смещению вто-*/
+             )                                    /* рого операнда          */
+           {
+            NBASRG = I + 1;
+            DELTA  = ZNSYM - T_BASR[I].SMESH;
+           }
+         }
+        if ( NBASRG == 0 || DELTA > 0xfff )       /*если баз.рег.не выбр.,то*/
+         return(5);                               /* заверш.подпр.по ошибке */
+        else                                      /*иначе                   */
+         {                                        /* сформировыать машинное */
+          B2D2 = NBASRG << 12;                    /* представление второго  */
+          B2D2 = B2D2 + DELTA;                    /* операнда в виде B2D2   */
+          PTR = (char *)&B2D2;                    /* и в соглашени€х ≈— Ё¬ћ */
+          swab ( PTR , PTR , 2 );                 /* с записью в тело ком-ды*/
+          RX.OP_RX.B2D2 = B2D2;
+         }
+        goto SRX2;                                /*перех.на форм.первого   */
        }                                          /*  опреранда машинной ком*/
      }
     return(2);                                    /*сообщ."необ'€вл.идентиф"*/
    }
-  else                                            /*иначе, берем в качестве */
-   {                                              /*втор.операнда машинн.ком*/
-    return(4);                                    /*значен.выбр.   лексемы  */
-   }
+  else {
+      char op1[8], op2[8];
+      op1[6] = ' ';
+      op1[7] = ' ';
+      op2[6] = ' ';
+      op2[7] = ' ';
+      int smeshenie;
+      
+      if (3 == sscanf (METKA2, "%d(%6[^+],%6[^+])", &smeshenie, op1, op2)) {
+          int J1, J2;
+          for ( J=0; J<=ITSYM; J++ )
+          {
+              METKA = strtok (
+                              (char*) T_SYM[J].IMSYM , " "
+                              );
+              if( strstr ( METKA , op1 ) != NULL )
+              {
+                  J1 = J;
+              }
+          }
+          for ( J=0; J<=ITSYM; J++ )
+          {
+              METKA = strtok (
+                              (char*) T_SYM[J].IMSYM , " "
+                              );
+              if( strstr ( METKA , op2 ) != NULL )
+              {
+                  J2 = J;
+              }
+          }
+          NBASRG = 0;
+          DELTA  = 0xfff - 1;
+          int  ZNSYM1;
+          int  ZNSYM2;
+          ZNSYM1  = T_SYM[J1].ZNSYM;
+          ZNSYM2  = T_SYM[J2].ZNSYM;
+          ZNSYM  = ZNSYM1 + ZNSYM2;
+          for ( I=0; I<15; I++ )
+          {
+              if (
+                  T_BASR[I].PRDOST == 'Y'
+                  &&
+                  ZNSYM - T_BASR[I].SMESH >= 0
+                  &&
+                  ZNSYM - T_BASR[I].SMESH < DELTA
+                  )
+              {
+                  NBASRG = I + 1;
+                  DELTA  = ZNSYM - T_BASR[I].SMESH;
+              }
+          }
+          if ( NBASRG == 0 || DELTA > 0xfff )
+              return(5);
+          else
+          {
+              B2D2 = NBASRG << 12;
+              B2D2 = B2D2 + DELTA;
+              PTR = (char *)&B2D2;
+              swab ( PTR , PTR , 2 );
+              RX.OP_RX.B2D2 = B2D2;
+          }
+          
+          
+          return 1;
+      }
+      else                                            /*иначе, берем в качестве */
+      {                                              /*втор.операнда машинн.ком*/
+          return(4);                                    /*значен.выбр.   лексемы  */
+      }
+  }
 
  SRX2:
 
@@ -985,7 +1067,12 @@ int SSS()                                         /*ïîäïð.îáð.îïåð.S
     if (flag == 1) {
         if (4 == sscanf ((char*)TEK_ISX_KARTA.STRUCT_BUFCARD.OPERAND, "%8[^+]+%d(%d),%8s", op1, &offset, &length, op2)) {
             printf ("%s %s %d %d\n", op1, op2, offset, length);
-
+            op1[6] = ' ';
+            op1[7] = ' ';
+            op2[1] = '\0';
+            for (int count = 2; count < 8; count++) {
+                op2[count] = ' ';
+            }
             int ide1, ide2;
             if ((ide1 = get_symbol_index(op1)) < 0 || (ide2 = get_symbol_index(op2)) < 0) {
                 return 2;
@@ -1035,6 +1122,31 @@ int SSS()                                         /*ïîäïð.îáð.îïåð.S
         SS.OP_SS.B2D2 = B2D2;
         
         printf ("%d(%0X) %d(%0X)\n", ide1, B1D1, ide2, B2D2);
+    }
+    else if (2 == sscanf ((char*)TEK_ISX_KARTA.STRUCT_BUFCARD.OPERAND, "%6[^+],%d", op1, &length)) {
+        offset = 0;
+        op1[6] = '\0';
+        op1[7] = ' ';
+        //printf ("%s %s %d %d\n", op1, op2, offset, length);
+        
+        int ide1;//, ide2;
+        if ((ide1 = get_symbol_index(op1)) < 0) {
+            return 2;
+        }
+        
+        B1D1 = get_full_addr(T_SYM[ide1].ZNSYM) + offset;
+        if (-1 == B1D1) { printf ("bad addr of first operand\n"); return 2; }
+        swab ( &B1D1 , &B1D1 , 2 );
+        
+//        B2D2 = get_full_addr(T_SYM[ide2].ZNSYM);
+//        if (-1 == B2D2) { printf ("bad addr of second operand\n"); return 2; }
+//        swab ( &B2D2 , &B2D2 , 2 );
+        
+        SS.OP_SS.L1L2 = length - 1;
+        SS.OP_SS.B1D1 = B1D1;
+        SS.OP_SS.B2D2 = length;
+        
+        //printf ("%d(%0X) %d(%0X)\n", ide1, B1D1, ide2, B2D2);
     }
     else
     {
@@ -1123,7 +1235,7 @@ int main( int argc, char **argv )                /*главна€ програ�
  {
    FILE *fp;
    char *ptr = argv [1];
-   unsigned char ASSTEXT [DL_ASSTEXT][80];
+   //unsigned char ASSTEXT [DL_ASSTEXT][80];
 
 /*
 ******* Ѕ Ћ ќ    об'€влений рабочих переменных
@@ -1328,8 +1440,8 @@ CONT3:
 	)                                         /* то                     */
 						  /*                        */
        {
-     int test  = T_MOP[I3].BXPROG ();
-	 switch ( test )           /* уйти в подпр.обработки */
+     int val  = T_MOP[I3].BXPROG ();
+	 switch ( val )           /* уйти в подпр.обработки */
 	  {
 	   case 0:
 	    goto CONT4;                           /* и завершить цикл       */
