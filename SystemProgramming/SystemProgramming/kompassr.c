@@ -153,7 +153,7 @@ int SSS();                                        /*подпр.обр.опер.S
      {{'B','C',' ',' ',' '} , '\x47' , 4 , FRX} ,
      {{'I','C',' ',' ',' '} , '\x43' , 4 , FRX} ,
      {{'C','R',' ',' ',' '} , '\x19' , 2 , FRR} ,
-     {{'S','R','L',' ',' '} , '\x88' , 6 , FSS} ,
+     {{'S','R','L',' ',' '} , '\x88' , 4 , FRX} ,
      {{'O','R',' ',' ',' '} , '\x16' , 2 , FRR} ,
      {{'S','T','C',' ',' '} , '\x42' , 4 , FRX} ,
     };
@@ -344,6 +344,7 @@ int getIntNum(char symb) {
 
 int FDC()                                         /*подпр.обр.пс.опер.DC    */
  {
+  int lenght = 4;
   if ( PRNMET == 'Y' )                            /*если псевдооп.DC помеч.,*/
    {                                              /*то:                     */
     if                                            /* если псевдоопераци€ DC */
@@ -361,7 +362,7 @@ int FDC()                                         /*подпр.обр.пс.оп�
       PRNMET = 'N';                               /*  занулить PRNMET зн.'N'*/
      }
     else if ((TEK_ISX_KARTA.STRUCT_BUFCARD.OPERAND[0]=='C' || TEK_ISX_KARTA.STRUCT_BUFCARD.OPERAND[0]=='B') && TEK_ISX_KARTA.STRUCT_BUFCARD.OPERAND[1]=='L') {
-        int lenght = getIntNum(TEK_ISX_KARTA.STRUCT_BUFCARD.OPERAND[2]);
+        lenght = getIntNum(TEK_ISX_KARTA.STRUCT_BUFCARD.OPERAND[2]);
         if (isdigit(TEK_ISX_KARTA.STRUCT_BUFCARD.OPERAND[3])) {
             lenght = lenght * 10 + getIntNum(TEK_ISX_KARTA.STRUCT_BUFCARD.OPERAND[3]);
         }
@@ -381,7 +382,7 @@ int FDC()                                         /*подпр.обр.пс.оп�
    if ( CHADR % 4 )                               /*и CHADR не кратен 4,то: */
     CHADR = (CHADR /4 + 1) * 4;                   /* установ.CHADR на гр.сл.*/
 
-  CHADR = CHADR + 4;                              /*увелич.CHADR на 4 и     */
+  CHADR = CHADR + lenght;                              /*увелич.CHADR на 4 и     */
   return (0);                                     /*успешно завершить подпр.*/
  }
 /*..........................................................................*/
@@ -565,7 +566,26 @@ int SDC()                                         /*подпр.обр.пс.оп�
     swab ( RAB , RAB , 2 );                       /* ≈— Ё¬ћ                 */
    }
   else                                            /*иначе                   */
-   return (1);                                    /*сообщение об ошибке     */
+      if (!memcmp(TEK_ISX_KARTA.STRUCT_BUFCARD.OPERAND,"CL", 2) || !memcmp(TEK_ISX_KARTA.STRUCT_BUFCARD.OPERAND,"BL", 2)) {
+          int size = atoi(strtok                                    /*в перем. c указат.RAB   */
+          (                                        /*выбираем первую лексему */
+           (char*)TEK_ISX_KARTA.STRUCT_BUFCARD.OPERAND+2,/*операнда текущей карты  */
+           "'"                                     /*исх.текста ј——≈ћЅЋ≈–ј   */
+           ));
+          RAB=strtok                                    /*в перем. c указат.RAB   */
+          (                                        /*выбираем первую лексему */
+           (char*)TEK_ISX_KARTA.STRUCT_BUFCARD.OPERAND+3+(int)floor(log10(abs(size))) + 1,/*операнда текущей карты  */
+           "'"                                     /*исх.текста ј——≈ћЅЋ≈–ј   */
+           );
+
+          
+          RX.OP_RX.B2D2 = atoi ( RAB );                 /*перевод ASCII-> int     */
+          RAB = (char *) &RX.OP_RX.B2D2;                /*приведение к соглашени€м*/
+          swab ( RAB , RAB , size );
+      }
+  else {
+    return (1);                                    /*сообщение об ошибке     */
+  }
 
   STXT (4);                                       /*формирование TXT-карты  */
 
@@ -580,7 +600,8 @@ int SDS()                                         /*подпр.обр.пс.оп�
   RX.OP_RX.R1X2 = 0;                              /*байта RX.OP_RX          */
   if
     (                                             /* если операнд начинаетс€*/
-     TEK_ISX_KARTA.STRUCT_BUFCARD.OPERAND[0]=='F' /* с комбинации F'        */
+     TEK_ISX_KARTA.STRUCT_BUFCARD.OPERAND[0]=='F' || /* с комбинации F'        */
+     TEK_ISX_KARTA.STRUCT_BUFCARD.OPERAND[0]=='0'
     )                                             /* то:                    */
    RX.OP_RX.B2D2 = 0;                             /*занулим RX.OP_RX.B2D2   */
   else                                            /*иначе                   */
@@ -948,10 +969,10 @@ int SRX()                                         /*подпр.обр.опер.R
               }
           }
           NBASRG = 0;
-          DELTA  = 0xfff - 1;
+          DELTA  = 0xfff - 1;//выставить 0?
           int  ZNSYM1;
           int  ZNSYM2;
-          ZNSYM1  = T_SYM[J1].ZNSYM;
+          ZNSYM1  = T_SYM[J1].ZNSYM; //????
           ZNSYM2  = T_SYM[J2].ZNSYM;
           ZNSYM  = ZNSYM1 + ZNSYM2;
           for ( I=0; I<15; I++ )
@@ -978,7 +999,7 @@ int SRX()                                         /*подпр.обр.опер.R
               swab ( PTR , PTR , 2 );
               RX.OP_RX.B2D2 = B2D2;
           }
-          
+          goto SRX2;
           
           return 1;
       }
