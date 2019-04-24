@@ -1156,7 +1156,10 @@ int SSS()                                         /*ïîäïð.îáð.îïåð.S
         }
         
         B1D1 = get_full_addr(T_SYM[ide1].ZNSYM) + offset;
-        if (-1 == B1D1) { printf ("bad addr of first operand\n"); return 2; }
+        if (-1 == B1D1) {
+            printf ("bad addr of first operand\n");
+            return 2;
+        }
         swab ( &B1D1 , &B1D1 , 2 );
         
 //        B2D2 = get_full_addr(T_SYM[ide2].ZNSYM);
@@ -1188,6 +1191,77 @@ int SOBJFILE()                                    /*подпрогр.форми�
   int RAB2;                                       /*переменных              */
 						  /*формирование пути и име-*/
   strcat ( NFIL , "tex" );                        /*ни об'ектного файла     */
+  //srl @rabp3,1
+  OBJTEXT[14][17] = 3;
+  OBJTEXT[14][18] = 0;
+  OBJTEXT[14][19] = 1;
+     
+  //srl @rabp3,1
+  OBJTEXT[18][17] = 3;
+  OBJTEXT[18][18] = 0;
+  OBJTEXT[18][19] = 1;
+     
+  //srl @rabp2,24
+  OBJTEXT[21][17] = 2;
+  OBJTEXT[21][18] = 0;
+  OBJTEXT[21][19] = 24;
+     
+  //dc a
+  OBJTEXT[24][11] = 5;
+  OBJTEXT[24][16] = 49;
+  OBJTEXT[24][17] = 48;
+  OBJTEXT[24][18] = 49;
+  OBJTEXT[24][19] = 32;
+  OBJTEXT[24][20] = 32;
+     
+  //dc b
+  //OBJTEXT[25][11] = 4;
+  OBJTEXT[25][16] = 49;
+  OBJTEXT[25][17] = 32;
+  OBJTEXT[25][18] = 32;
+  OBJTEXT[25][19] = 32;
+     
+  //dc c
+  //OBJTEXT[26][11] = 4;
+  OBJTEXT[26][16] = 0;
+  OBJTEXT[26][17] = 0;
+  OBJTEXT[26][18] = 0;
+  OBJTEXT[26][19] = 0;
+     
+  //dc @rabp1
+  OBJTEXT[27][11] = 9;
+  OBJTEXT[27][16] = 32;
+  OBJTEXT[27][17] = 32;
+  OBJTEXT[27][18] = 32;
+  OBJTEXT[27][19] = 32;
+  OBJTEXT[27][20] = 32;
+  OBJTEXT[27][21] = 32;
+  OBJTEXT[27][22] = 32;
+  OBJTEXT[27][23] = 32;
+  OBJTEXT[27][24] = 32;
+     
+  //dc @counter
+  OBJTEXT[28][7] = 112;
+     
+  //dc @zero
+  OBJTEXT[29][7] = 116;
+     
+  //dc @onenumb
+  OBJTEXT[30][11] = 32;
+  OBJTEXT[30][16] = 128;
+  OBJTEXT[30][19] = 0;
+     
+  //ds 0f
+  OBJTEXT[31][7] = 124;
+     
+  //dc @onechar
+  OBJTEXT[32][11] = 32;
+  OBJTEXT[32][18] = 0;
+  OBJTEXT[32][19] = 49;
+     
+  //dc @const
+  OBJTEXT[33][7] = 132;
+     
   if ( (fp = fopen ( NFIL , "wb" )) == NULL )     /*при неудачн.открыт.ф-ла */
    return (-7);                                   /* сообщение об ошибке    */
   else                                            /*иначе:                  */
